@@ -6,10 +6,10 @@ use App\Models\LevelModel;
 use App\Models\UserModel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    // Menampilkan halaman awal user
     // Menampilkan halaman awal user
     public function index()
     {
@@ -85,6 +85,51 @@ class UserController extends Controller
             'level'      => $level,
             'activeMenu' => $activeMenu
         ]);
+    }
+
+    public function create_ajax()
+    {
+        $level = LevelModel::select('level_id', 'level_nama')->get(); // Ambil data level untuk ditampilkan di form
+        return view('user.create_ajax')
+            ->with('level', $level);
+    }
+
+    public function store_ajax(Request $request)
+    {
+        // Cek apakah request berupa AJAX atau JSON
+        if ($request->ajax() || $request->wantsJson()) {
+            // Aturan validasi data input
+            $rules = [
+                'level_id' => 'required|integer',
+                'username' => 'required|string|min:3|unique:m_user,username',
+                'nama'     => 'required|string|max:100',
+                'password' => 'required|min:6',
+            ];
+
+            // Validasi input
+            $validator = Validator::make($request->all(), $rules);
+
+            // Jika validasi gagal, kirim respon JSON dengan error
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'   => false, // false menunjukkan validasi gagal
+                    'message'  => 'Validasi Gagal',
+                    'msgField' => $validator->errors(), // Pesan error validasi
+                ]);
+            }
+
+            // Simpan data ke database
+            UserModel::create($request->all());
+
+            // Kirim respon sukses
+            return response()->json([
+                'status'  => true,
+                'message' => 'Data user berhasil disimpan',
+            ]);
+        }
+
+        // Redirect ke halaman utama jika bukan request AJAX
+        return redirect('/');
     }
 
     // Menyimpan data user baru
