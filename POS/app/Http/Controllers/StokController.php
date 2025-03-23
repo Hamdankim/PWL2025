@@ -234,7 +234,7 @@ class StokController extends Controller
                 ]);
 
             } catch (\Exception $e) {
-                \Log::error($e->getMessage());
+                Log::error($e->getMessage());
                 return response()->json([
                     'status' => false,
                     'message' => 'Terjadi kesalahan: ' . $e->getMessage()
