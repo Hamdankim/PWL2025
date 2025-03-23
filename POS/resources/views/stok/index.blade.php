@@ -1,11 +1,13 @@
 @extends('layouts.template')
 
 @section('content')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="card card-outline card-primary">
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('stok/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('stok/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
             </div>
         </div>
         <div class="card-body">
@@ -40,15 +42,23 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Barang</th>
                         <th>Supplier</th>
-                        <th>User</th>
-                        <th>Tanggal</th>
+                        <th>Barang</th>
                         <th>Jumlah</th>
+                        <th>Tanggal Ditambahkan</th>
                         <th>Aksi</th>                        
                     </tr>
                 </thead>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal dengan perbaikan aksesibilitas -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <!-- Modal content will be loaded here -->
+            </div>
         </div>
     </div>
 @endsection
@@ -58,14 +68,38 @@
 
 @push('js')
     <script>
+        function modalAction(url = '') {
+            // Clear modal content first
+            $('#myModal .modal-content').html('');
+            
+            // Load new content
+            $('#myModal .modal-content').load(url, function() {
+                $('#myModal').modal('show');
+                
+                // Remove inert attribute when modal is shown
+                document.getElementById('myModal').removeAttribute('inert');
+            });
+        }
+
+        // Add inert attribute when modal is hidden
+        $('#myModal').on('hidden.bs.modal', function () {
+            document.getElementById('myModal').setAttribute('inert', '');
+        });
+
+        var dataStok;
         $(document).ready(function() {
-            var dataStok = $('#table_stok').DataTable({
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            
+            dataStok = $('#table_stok').DataTable({
                 serverSide: true,
                 ajax: {
                     url: "{{ url('stok/list') }}",
-                    dataType: "json",
                     type: "POST",
-                    "data": function(d) {
+                    data: function(d) {
                         d.supplier_id = $('#supplier_id').val();
                     }
                 },
@@ -77,32 +111,26 @@
                         searchable: false
                     },
                     {
-                        data: "barang.barang_nama",
-                        className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
                         data: "supplier.supplier_nama",
                         className: "",
                         orderable: true,
                         searchable: true
                     },
                     {
-                        data: "user.username",
+                        data: "barang.barang_nama",
                         className: "",
-                        orderable: true,
-                        searchable: true
-                    },
-                    {
-                        data: "stok_tanggal",
-                        className: "text-center",
                         orderable: true,
                         searchable: true
                     },
                     {
                         data: "stok_jumlah",
                         className: "text-right",
+                        orderable: true,
+                        searchable: true
+                    },
+                    {
+                        data: "stok_tanggal",
+                        className: "text-center",
                         orderable: true,
                         searchable: true
                     },
@@ -114,6 +142,7 @@
                     }
                 ]
             });
+            
             $('#supplier_id').on('change', function() {
                 dataStok.ajax.reload();
             });

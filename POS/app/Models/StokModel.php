@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 
 
 class StokModel extends Model
 {
+    use HasFactory;
+
     protected $table = 't_stok'; // Sesuai dengan tabel stok
     protected $primaryKey = 'stok_id'; // Primary key tabel stok
 
