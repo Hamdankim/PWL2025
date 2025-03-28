@@ -1,4 +1,4 @@
-<form action="{{ url('/stok/store_ajax') }}" method="POST" id="form-tambah">
+<form action="{{ url('/stok/ajax') }}" method="POST" id="form-tambah">
     @csrf
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -48,7 +48,8 @@
                 <!-- Input Jumlah -->
                 <div class="form-group">
                     <label>Jumlah Stok</label>
-                    <input type="number" class="form-control" id="stok_jumlah" name="stok_jumlah" required min="1">
+                    <input type="number" class="form-control" id="stok_jumlah" name="stok_jumlah" required
+                        min="1">
                     <small id="error-stok_jumlah" class="error-text form-text text-danger"></small>
                 </div>
 
@@ -91,26 +92,6 @@
                     min: 1
                 }
             },
-            messages: {
-                supplier_id: {
-                    required: "Supplier harus dipilih."
-                },
-                barang_id: {
-                    required: "Barang harus dipilih."
-                },
-                user_id: {
-                    required: "User harus dipilih."
-                },
-                stok_tanggal: {
-                    required: "Tanggal stok harus diisi.",
-                    date: "Format tanggal tidak valid."
-                },
-                stok_jumlah: {
-                    required: "Jumlah stok harus diisi.",
-                    digits: "Jumlah stok harus berupa angka.",
-                    min: "Jumlah stok minimal 1."
-                }
-            },
             submitHandler: function(form) {
                 $.ajax({
                     url: form.action,
@@ -145,10 +126,10 @@
                 error.addClass('invalid-feedback');
                 element.closest('.form-group').append(error);
             },
-            highlight: function(element) {
+            highlight: function(element, errorClass, validClass) {
                 $(element).addClass('is-invalid');
             },
-            unhighlight: function(element) {
+            unhighlight: function(element, errorClass, validClass) {
                 $(element).removeClass('is-invalid');
             }
         });

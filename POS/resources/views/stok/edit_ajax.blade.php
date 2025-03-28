@@ -35,7 +35,8 @@
                         <select class="form-control" id="supplier_id" name="supplier_id" required>
                             <option value="">- Pilih Supplier -</option>
                             @foreach ($suppliers as $item)
-                                <option value="{{ $item->supplier_id }}" {{ $stok->supplier_id == $item->supplier_id ? 'selected' : '' }}>
+                                <option value="{{ $item->supplier_id }}"
+                                    {{ $stok->supplier_id == $item->supplier_id ? 'selected' : '' }}>
                                     {{ $item->supplier_nama }}
                                 </option>
                             @endforeach
@@ -49,7 +50,8 @@
                         <select class="form-control" id="barang_id" name="barang_id" required>
                             <option value="">- Pilih Barang -</option>
                             @foreach ($barang as $item)
-                                <option value="{{ $item->barang_id }}" {{ $stok->barang_id == $item->barang_id ? 'selected' : '' }}>
+                                <option value="{{ $item->barang_id }}"
+                                    {{ $stok->barang_id == $item->barang_id ? 'selected' : '' }}>
                                     {{ $item->barang_nama }}
                                 </option>
                             @endforeach
@@ -63,7 +65,8 @@
                         <select class="form-control" id="user_id" name="user_id" required>
                             <option value="">- Pilih User -</option>
                             @foreach ($users as $item)
-                                <option value="{{ $item->user_id }}" {{ $stok->user_id == $item->user_id ? 'selected' : '' }}>
+                                <option value="{{ $item->user_id }}"
+                                    {{ $stok->user_id == $item->user_id ? 'selected' : '' }}>
                                     {{ $item->nama }}
                                 </option>
                             @endforeach
@@ -74,7 +77,7 @@
                     <!-- Input Jumlah -->
                     <div class="form-group">
                         <label>Jumlah Stok</label>
-                        <input type="number" class="form-control" id="stok_jumlah" name="stok_jumlah" 
+                        <input type="number" class="form-control" id="stok_jumlah" name="stok_jumlah"
                             value="{{ $stok->stok_jumlah }}" required min="1">
                         <small id="error-stok_jumlah" class="error-text form-text text-danger"></small>
                     </div>
@@ -82,7 +85,7 @@
                     <!-- Input Tanggal -->
                     <div class="form-group">
                         <label>Tanggal Stok</label>
-                        <input type="datetime-local" class="form-control" id="stok_tanggal" name="stok_tanggal" 
+                        <input type="datetime-local" class="form-control" id="stok_tanggal" name="stok_tanggal"
                             value="{{ date('Y-m-d\TH:i', strtotime($stok->stok_tanggal)) }}" required>
                         <small id="error-stok_tanggal" class="error-text form-text text-danger"></small>
                     </div>
@@ -116,26 +119,6 @@
                         required: true,
                         digits: true,
                         min: 1
-                    }
-                },
-                messages: {
-                    supplier_id: {
-                        required: "Supplier harus dipilih."
-                    },
-                    barang_id: {
-                        required: "Barang harus dipilih."
-                    },
-                    user_id: {
-                        required: "User harus dipilih."
-                    },
-                    stok_tanggal: {
-                        required: "Tanggal stok harus diisi.",
-                        date: "Format tanggal tidak valid."
-                    },
-                    stok_jumlah: {
-                        required: "Jumlah stok harus diisi.",
-                        digits: "Jumlah stok harus berupa angka.",
-                        min: "Jumlah stok minimal 1."
                     }
                 },
                 submitHandler: function(form) {
@@ -172,10 +155,10 @@
                     error.addClass('invalid-feedback');
                     element.closest('.form-group').append(error);
                 },
-                highlight: function(element) {
+                highlight: function(element, errorClass, validClass) {
                     $(element).addClass('is-invalid');
                 },
-                unhighlight: function(element) {
+                unhighlight: function(element, errorClass, validClass) {
                     $(element).removeClass('is-invalid');
                 }
             });

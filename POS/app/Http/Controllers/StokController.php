@@ -9,8 +9,6 @@ use App\Models\BarangModel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class StokController extends Controller
 {
@@ -29,14 +27,13 @@ class StokController extends Controller
         $activeMenu = 'stok';
 
         $suppliers = SupplierModel::all();
-        $stok = StokModel::all();
+        // $stok = StokModel::all();
         $user = UserModel::all();
         $barang = BarangModel::all();
         return view('stok.index', [
             'breadcrumb' => $breadcrumb,
             'page' => $page,
             'suppliers' => $suppliers,
-            'stok' => $stok,
             'user' => $user,
             'barang' => $barang,
             'activeMenu' => $activeMenu
@@ -80,11 +77,60 @@ class StokController extends Controller
         ];
 
         $suppliers = SupplierModel::all();
-        $stok = StokModel::all();
+        // $stok = StokModel::all();
+        $barang = BarangModel::all();
         $user = UserModel::all();
         $activeMenu = 'stok';
 
         return view('stok.create', compact('breadcrumb', 'page', 'suppliers', 'stok', 'user', 'activeMenu'));
+    }
+
+    // Fungsi AJAX untuk menampilkan form tambah stok
+    public function create_ajax()
+    {
+        $suppliers = SupplierModel::select('supplier_id', 'supplier_nama')->get();
+        $barang = BarangModel::select('barang_id', 'barang_nama')->get();
+        $users = UserModel::select('user_id', 'nama')->get();
+
+        return view('stok.create_ajax', [
+            'suppliers' => $suppliers,
+            'barang' => $barang,
+            'users' => $users
+        ]);
+    }
+
+    // Fungsi AJAX untuk menyimpan stok baru
+    public function store_ajax(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+
+            $rules = [
+                'supplier_id' => 'required|exists:m_supplier,supplier_id',
+                'barang_id' => 'required|exists:m_barang,barang_id',
+                'user_id' => 'required|exists:m_user,user_id',
+                'stok_tanggal' => 'required|date',
+                'stok_jumlah' => 'required|integer|min:1'
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi gagal',
+                    'msgField' => $validator->errors()
+                ]);
+            }
+
+            StokModel::create($request->all());
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data stok berhasil disimpan'
+            ]);
+        }
+
+        return redirect('/');
     }
 
     // Menyimpan stok baru
@@ -103,20 +149,20 @@ class StokController extends Controller
     }
 
     // Menampilkan detail stok
-    public function show($id)
+    public function show(string $id)
     {
         $stok = StokModel::with(['supplier', 'barang', 'user'])->find($id);
 
         $breadcrumb = (object) [
-            'title' => 'Detail Barang',
-            'list' => ['Home', 'Barang', 'Detail']
+            'title' => 'Detail Stok',
+            'list' => ['Home', 'Stok', 'Detail']
         ];
 
         $page = (object) [
-            'title' => 'Detail Barang'
+            'title' => 'Detail Stok'
         ];
 
-        $activeMenu = 'barang'; // Set menu yang sedang aktif
+        $activeMenu = 'stok'; // Set menu yang sedang aktif
 
         return view('stok.show', [
             'breadcrumb' => $breadcrumb,
@@ -127,9 +173,9 @@ class StokController extends Controller
     }
 
     // Menampilkan halaman form edit stok
-    public function edit($id)
+    public function edit(string $id)
     {
-        $stok = StokModel::findOrFail($id);
+        $stok = StokModel::find($id);
         $suppliers = SupplierModel::all();
         $barang = BarangModel::all();
         $user = UserModel::all();
@@ -140,148 +186,25 @@ class StokController extends Controller
         ];
 
         $page = (object) [
-            'title' => 'Edit stok stok'
+            'title' => 'Edit stok'
         ];
 
         $activeMenu = 'stok';
 
-        return view('stok.edit', compact('breadcrumb', 'page', 'stok', 'suppliers', 'barang', 'user', 'activeMenu'));
+        return view('stok.edit', ['breadcrumb', 'page', 'stok', 'suppliers', 'barang', 'user', 'activeMenu']);
     }
 
-    // Menyimpan perubahan data stok
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'supplier_id' => 'required|exists:m_supplier,supplier_id',
-            'user_id' => 'required|exists:m_user,user_id',
-            'barang_id' => 'required|exists:m_barang,barang_id',
-            'stok_tanggal' => 'required|date',
-            'stok_jumlah' => 'required|integer|min:1'
-        ]);
-
-        $stok = StokModel::findOrFail($id);
-        $stok->update($request->all());
-
-        return redirect('/stok')->with('success', 'Data stok berhasil diperbarui');
-    }
-
-    // Menghapus stok
-    public function destroy($id)
-    {
-        $stok = StokModel::find($id);
-
-        if (!$stok) {
-            return redirect('/stok')->with('error', 'Data stok tidak ditemukan');
-        }
-
-        try {
-            $stok->delete();
-            return redirect('/stok')->with('success', 'Data stok berhasil dihapus');
-        } catch (\Exception $e) {
-            return redirect('/stok')->with('error', 'Data stok gagal dihapus karena masih terkait dengan data lain');
-        }
-    }
-
-    // Fungsi AJAX untuk menampilkan form tambah stok
-    public function create_ajax()
-    {
-        try {
-            $suppliers = SupplierModel::select('supplier_id', 'supplier_nama')->get();
-            $barang = BarangModel::select('barang_id', 'barang_nama')->get();
-            $users = UserModel::select('user_id', 'nama')->get();
-
-            return view('stok.create_ajax', [
-                'suppliers' => $suppliers,
-                'barang' => $barang,
-                'users' => $users
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // Fungsi AJAX untuk menyimpan stok baru
-    public function store_ajax(Request $request)
-    {
-        if ($request->ajax() || $request->wantsJson()) {
-            try {
-                $rules = [
-                    'supplier_id' => 'required|exists:m_supplier,supplier_id',
-                    'barang_id' => 'required|exists:m_barang,barang_id',
-                    'user_id' => 'required|exists:m_user,user_id',
-                    'stok_tanggal' => 'required|date',
-                    'stok_jumlah' => 'required|integer|min:1'
-                ];
-
-                $validator = Validator::make($request->all(), $rules);
-
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => false,
-                        'message' => 'Validasi gagal',
-                        'msgField' => $validator->errors()
-                    ]);
-                }
-
-                StokModel::create($request->all());
-
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data stok berhasil disimpan'
-                ]);
-
-            } catch (\Exception $e) {
-                Log::error($e->getMessage());
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-                ], 500);
-            }
-        }
-
-        return redirect('/');
-    }
-
-    // Fungsi AJAX untuk menampilkan form edit stok
     public function edit_ajax(string $id)
     {
-        try {
-            // Debug log
-            Log::info('Editing stok with ID: ' . $id);
-            
-            // Ambil data stok berdasarkan ID dengan relasi
-            $stok = StokModel::find($id);
-            
-            if (!$stok) {
-                Log::warning('Stok not found with ID: ' . $id);
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data stok tidak ditemukan'
-                ], 404);
-            }
+        // Ambil data stok berdasarkan ID dengan relasi
+        $stok = StokModel::find($id);
 
-            // Ambil data untuk dropdown
-            $suppliers = SupplierModel::select('supplier_id', 'supplier_nama')->get();
-            $barang = BarangModel::select('barang_id', 'barang_nama')->get();
-            $users = UserModel::select('user_id', 'nama')->get();
+        // Ambil data untuk dropdown
+        $suppliers = SupplierModel::select('supplier_id', 'supplier_nama')->get();
+        $barang = BarangModel::select('barang_id', 'barang_nama')->get();
+        $users = UserModel::select('user_id', 'nama')->get();
 
-            // Debug log
-            Log::info('Successfully retrieved data for stok edit form');
-
-            return view('stok.edit_ajax', compact('stok', 'suppliers', 'barang', 'users'));
-
-        } catch (\Exception $e) {
-            Log::error('Error in edit_ajax: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'status' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
+        return view('stok.edit_ajax', ['stok', 'suppliers', 'barang', 'users']);
     }
 
     // Fungsi AJAX untuk menyimpan perubahan data stok
@@ -330,6 +253,38 @@ class StokController extends Controller
         }
 
         return redirect('/');
+    }
+    // Menyimpan perubahan data stok
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
+            'supplier_id' => 'required|exists:m_supplier,supplier_id',
+            'user_id' => 'required|exists:m_user,user_id',
+            'barang_id' => 'required|exists:m_barang,barang_id',
+            'stok_tanggal' => 'required|date',
+            'stok_jumlah' => 'required|integer|min:1'
+        ]);
+
+        StokModel::find($id)->update($request->all());
+
+        return redirect('/stok')->with('success', 'Data stok berhasil diperbarui');
+    }
+
+    // Menghapus stok
+    public function destroy($id)
+    {
+        $check = StokModel::find($id);
+        if (!$check) {
+            return redirect('/stok')->with('error', 'Data stok tidak ditemukan');
+        }
+
+        try {
+            StokModel::destroy($id);
+
+            return redirect('/stok')->with('success', 'Data stok berhasil dihapus');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect('/stok')->with('error', 'Data user gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
+        }
     }
 
     // Fungsi AJAX untuk menampilkan konfirmasi hapus stok

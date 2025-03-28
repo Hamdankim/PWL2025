@@ -1,7 +1,6 @@
 @extends('layouts.template')
 
 @section('content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="card card-outline card-primary">
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
@@ -53,14 +52,8 @@
         </div>
     </div>
 
-    <!-- Modal dengan perbaikan aksesibilitas -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="false">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <!-- Modal content will be loaded here -->
-            </div>
-        </div>
-    </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static"
+        data-keyboard="false" data-width="75%" aria-hidden="true"></div>
 @endsection
 
 @push('css')
@@ -69,37 +62,20 @@
 @push('js')
     <script>
         function modalAction(url = '') {
-            // Clear modal content first
-            $('#myModal .modal-content').html('');
-            
-            // Load new content
-            $('#myModal .modal-content').load(url, function() {
+            $('#myModal').load(url, function() {
                 $('#myModal').modal('show');
-                
-                // Remove inert attribute when modal is shown
-                document.getElementById('myModal').removeAttribute('inert');
             });
         }
 
-        // Add inert attribute when modal is hidden
-        $('#myModal').on('hidden.bs.modal', function () {
-            document.getElementById('myModal').setAttribute('inert', '');
-        });
-
         var dataStok;
-        $(document).ready(function() {
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            
+        $(document).ready(function() {            
             dataStok = $('#table_stok').DataTable({
                 serverSide: true,
                 ajax: {
                     url: "{{ url('stok/list') }}",
+                    dataType: "json",
                     type: "POST",
-                    data: function(d) {
+                    "data": function(d) {
                         d.supplier_id = $('#supplier_id').val();
                     }
                 },
