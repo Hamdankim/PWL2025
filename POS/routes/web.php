@@ -1,15 +1,28 @@
 <?php
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{
-    WelcomeController,
-    UserController,
-    LevelController,
-    KategoriController,
-    BarangController,
-    StokController
-};
 
-Route::get('/', [WelcomeController::class, 'index']);
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\BarangController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\StokController;
+use Illuminate\Support\Facades\Route;
+
+// Jika ada parameter {id}, maka nilainya harus berupa angka
+Route::pattern('id', '[0-9]+');
+
+// Route login
+Route::get('login', [AuthController::class, 'login'])->name('login');
+Route::post('login', [AuthController::class, 'postlogin']);
+
+// Route logout (harus sudah login/authenticated)
+Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
+
+// Semua route dalam grup ini hanya bisa diakses jika sudah login
+Route::middleware(['auth'])->group(function () {
+    Route::get('/', [WelcomeController::class, 'index']);
 
 Route::group(['prefix' => 'user'], function () {
     Route::get('/', [UserController::class, 'index']);
@@ -95,3 +108,7 @@ Route::group(['prefix' => 'stok'], function () {
     Route::delete('/{id}/delete_ajax', [StokController::class, 'delete_ajax']);
     Route::delete('/{id}', [StokController::class, 'destroy']);
 });
+});
+
+
+
