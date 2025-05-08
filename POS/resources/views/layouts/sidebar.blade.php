@@ -45,6 +45,16 @@
                         class="nav-icon fas fa-cash-register"></i>
                     <p>Transaksi Penjualan</p>
                 </a> </li>
+            <li class="nav-item mt-3">
+                <form method="GET" action="{{ url('logout') }}">
+                    @csrf
+                    <button type="submit" class="nav-link bg-danger text-white"
+                        style="border: none; width: 100%; text-align: left;">
+                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                        <p>Logout</p>
+                    </button>
+                </form>
+            </li>
         </ul>
     </nav>
 </div>
