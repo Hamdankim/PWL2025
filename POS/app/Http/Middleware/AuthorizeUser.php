@@ -16,12 +16,12 @@ class AuthorizeUser
      * @param  string  $role
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, Closure $next, $role = ''): Response
+    public function handle(Request $request, Closure $next, ... $roles): Response
     {
-        $user = $request->user(); // ambil data user yang login
+        $user_role = $request->user()->getRole(); // ambil data user yang login
 
         // cek apakah user punya role yang diinginkan
-        if ($user->hasRole($role)) {
+        if (in_array($user_role, $roles)) {
             return $next($request);
         }
 

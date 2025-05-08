@@ -16,11 +16,9 @@ class UserModel extends Authenticatable
 
     protected $fillable = [
         'username',
-        'password',
         'nama',
-        'level_id',
-        'created_at',
-        'updated_at',
+        'password',
+        'level_id'
     ];
 
     protected $hidden = [
@@ -47,5 +45,10 @@ class UserModel extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->level->level_kode == $role;
+    }
+
+    public function getRole()
+    {
+        return $this->level->level_kode;
     }
 }
