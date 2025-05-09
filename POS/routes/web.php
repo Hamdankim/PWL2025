@@ -95,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/barang/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']);
         Route::delete('/barang/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
         Route::delete('/barang/{id}', [BarangController::class, 'destroy']);
+        Route::get('/barang/import', [BarangController::class, 'import']);
+        Route::post('/barang/import_ajax', [BarangController::class, 'import_ajax']);
     });
 
     Route::group(['prefix' => 'stok'], function () {
