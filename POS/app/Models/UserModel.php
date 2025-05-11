@@ -2,26 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class UserModel extends Authenticatable implements JWTSubject
 {
-    use HasFactory;
-
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
     protected $table = 'm_user';
     protected $primaryKey = 'user_id';
 
@@ -29,37 +15,41 @@ class UserModel extends Authenticatable implements JWTSubject
         'username',
         'nama',
         'password',
-        'level_id'
-    ];
-
-    protected $hidden = [
-        'password', // jangan ditampilkan saat select
-    ];
-
-    protected $casts = [
-        'password' => 'hashed', // casting password agar otomatis di-hash
+        'level_id',
+        'image', // tambahan
     ];
 
     /**
-     * Relasi ke tabel level
+     * Relasi ke tabel level.
      */
-    public function level(): BelongsTo
+    public function level()
     {
         return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
     }
 
-    public function getRoleName(): string
+    /**
+     * Accessor untuk kolom image.
+     */
+    protected function image(): Attribute
     {
-        return $this->level->level_nama;
+        return Attribute::make(
+            get: fn ($image) => url('/storage/posts/' . $image),
+        );
     }
 
-    public function hasRole(string $role): bool
+    /**
+     * JWT identifier.
+     */
+    public function getJWTIdentifier()
     {
-        return $this->level->level_kode == $role;
+        return $this->getKey();
     }
 
-    public function getRole()
+    /**
+     * Custom claims untuk JWT.
+     */
+    public function getJWTCustomClaims()
     {
-        return $this->level->level_kode;
+        return [];
     }
 }
